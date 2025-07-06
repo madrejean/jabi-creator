@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>???</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+</head>
+
+<body>
+    <!-- <script src="common.js"></script> -->
+    <container>
+        <hbox>
+            <vbox>
+
+                <div class="jabiImage" id="jabiImageContainer">
+                    <img id="jabiImage" src="assets/jabi/empty.png">
+                </div>
+
+                <div class="imageSelection">
+                    <button onclick="switchBackgroundImage(-1)">&lt;</button>
+                    <div id="imageSelectionImageCounter" class="imageSelectionImageCounter">1/3</div>
+                    <button onclick="switchBackgroundImage(1)">&gt;</button>
+                </div>
+
+            </vbox>
+            <vbox>
+                <h1>develop your very own JABI</h1>
+
+                <hbox>
+                    <label for="textareaSelection">current text area: </label>
+                    <select id="textareaSelection" onchange="changeSelectedTextArea()"></select>
+                    <button onclick="addTextArea()">+</button>
+                    <button onclick="removeTextArea()">-</button>
+                </hbox>
+
+                <div class="textAreaSpecificOptions" id="textAreaSpecificOptions">
+                    <div id="editor"></div>
+                    <hbox style="margin-top: 20px;">
+                        <label for="fontSizeSlider">font size</label>
+                        <input type="range" min="1" max="100" value="16" oninput="changeFontSize()" id="fontSizeSlider">
+                        <div id="fontSizeSliderValue">16</div>
+                    </hbox>
+                </div>
+
+            </vbox>
+        </hbox>
+    </container>
+</body>
+
+<script>
+    const quill = new Quill('#editor', {
+        modules: {
+            toolbar: 
+            [
+                ['bold', 'italic', 'underline', 'strike', 'image'],
+                [{ 'color': [] }],
+                //[{ 'font': [] }],
+                //[{ 'align': [] }],
+                ['clean']
+            ],
+        },
+        placeholder: 'your text here',
+        theme: 'snow',
+    });
+    quill.on('text-change', (delta, oldDelta, source) => {
+        let tarea = document.getElementById(textareaSelectionElement.value);
+        tarea.innerHTML = quill.getSemanticHTML();
+    });
+</script>
+
+<script>
+    let currentTextDragElement = null;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    document.addEventListener('mousedown', function(e) {
+        if (e.target.classList.contains('jabiImageTextArea')) {
+            currentTextDragElement = e.target;
+            offsetX = e.clientX - currentTextDragElement.offsetLeft;
+            offsetY = e.clientY - currentTextDragElement.offsetTop;
+        }
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        if (currentTextDragElement) {
+            currentTextDragElement.style.left = `${e.clientX - offsetX}px`;
+            currentTextDragElement.style.top = `${e.clientY - offsetY}px`;
+        }
+    });
+
+    document.addEventListener('mouseup', function() {
+        currentTextDragElement = null;
+    });
+</script>
+
+<!-- font size slider -->
+<script>
+    const fontSizeSliderElement = document.getElementById("fontSizeSlider");
+    const fontSizeSliderValueElement = document.getElementById("fontSizeSliderValue");
+    function changeFontSize(){
+        let tarea = document.getElementById(textareaSelectionElement.value);
+        fontSizeSliderValueElement.innerHTML = fontSizeSliderElement.value + "px";
+        tarea.style.fontSize = fontSizeSliderElement.value + "px";
+    }
+</script>
+
+<!-- managing textareas -->
+<script>
+    const textareaSelectionElement = document.getElementById("textareaSelection");
+    const textAreaSpecificOptionsElement = document.getElementById("textAreaSpecificOptions");
+
+    let textAreas = [];
+    
+    changeSelectedTextArea();
+
+    function changeSelectedTextArea(){
+        if (!!textareaSelectionElement.value){
+            textAreaSpecificOptionsElement.style.display = "flex";
+
+            let tarea = document.getElementById(textareaSelectionElement.value);
+
+            let delta = quill.clipboard.convert({html:tarea.innerHTML})
+            quill.setContents(delta);
+
+            if (!!tarea.style.fontSize){
+                fontSizeSliderElement.value = parseInt(tarea.style.fontSize);
+                changeFontSize();
+            }
+        }
+        else {
+            textAreaSpecificOptionsElement.style.display = "none";
+        }
+    }
+
+    function addTextArea() {
+        let textarea = document.createElement('div');
+        textarea.className = "jabiImageTextArea";
+        textarea.style.left = Math.floor(2 + Math.random() * 12) + "em";
+        textarea.style.top = Math.floor(1.5 + Math.random() * 8.5) + "em";
+
+        // generating a unique id to the text area
+        let newId = 1;
+        let idString = `textarea ${newId}`;
+        while (document.getElementById(idString) !== null){
+            newId += 1;
+            idString = `textarea ${newId}`;
+        }
+        
+        // assigning the id
+        textarea.id = idString;
+        textAreas.push(textarea.id);
+        textarea.textContent = idString;
+
+        // adding option to the textarea selection
+        let option = document.createElement('option');
+        option.value = textarea.id;
+        option.text = textarea.id;
+        textareaSelectionElement.appendChild(option);
+        textareaSelectionElement.value = option.text;
+
+        jabiImageContainer.insertBefore(textarea, jabiImageContainer.firstChild);
+
+        changeSelectedTextArea();
+        changeFontSize();
+    }
+    function removeTextArea() {
+        let textareaToDelete = document.getElementById(textareaSelectionElement.value);
+
+        // removing the option
+
+        let indexToRemove = -1;
+
+        for (let i = 0; i < textareaSelectionElement.options.length; i++) {
+            if (textareaSelectionElement.options[i].value === textareaToDelete.id) {
+                indexToRemove = i;
+                break;
+            }
+        }
+
+        if (indexToRemove !== -1) {
+            textareaSelectionElement.remove(indexToRemove);
+
+            const newIndex = indexToRemove - 1;
+            if (newIndex >= 0) {
+                textareaSelectionElement.selectedIndex = newIndex;
+            }
+            else if (textareaSelectionElement.options.length > 0) {
+                textareaSelectionElement.selectedIndex = 0;
+            }
+        }
+
+        var indexInArray = textAreas.indexOf(textareaToDelete.id);
+        if (indexInArray > -1) {
+            textAreas.splice(indexInArray, 1);
+        }
+        textareaToDelete.remove();
+        changeSelectedTextArea();
+    }
+</script>
+
+<!-- image selection -->
+<script>
+    const imageOptions = [
+        'type1',
+        'type2',
+        'type3',
+        'type4',
+        'type5',
+        'type6',
+        'type7',
+        'type8',
+        'type9',
+        'type10',
+        'type11',
+    ];
+    const imageSelectionImageCounter = document.getElementById("imageSelectionImageCounter");
+    const jabiImage = document.getElementById("jabiImage");
+
+    var currentImageIndex = 0;
+
+    function switchBackgroundImage(direction) {
+        currentImageIndex += direction;
+        if (currentImageIndex >= imageOptions.length)
+            currentImageIndex = 0;
+        else if (currentImageIndex < 0)
+            currentImageIndex = imageOptions.length - 1;
+
+        imageSelectionImageCounter.innerHTML = `${currentImageIndex + 1}&nbsp;/&nbsp;${imageOptions.length}`;
+        jabiImage.src = `assets/jabi/${imageOptions[currentImageIndex]}.png`;
+    }
+
+    switchBackgroundImage(0);
+</script>
+
+</html>
