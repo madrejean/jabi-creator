@@ -40,6 +40,16 @@ hbox {
     /* align-items: center; */
 }
 
+jabiMainHbox {
+    display: inline-flex;
+    gap: 20px;
+    width: 100%;
+    flex-direction: row;
+    @media (orientation: portrait) {
+        flex-direction: column;
+    }
+}
+
 
 .jabiImage {
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
@@ -48,6 +58,8 @@ hbox {
     width: 100%;
     height: auto;
     object-fit: contain;
+    pointer-events: none;
+    user-select: none;
 }
 .jabiImageTextArea {
     position: absolute;

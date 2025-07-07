@@ -9,12 +9,26 @@
     <link rel="stylesheet" type="text/css" href="styles.css">
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+
+    <link rel="preload" as="image" href="assets/jabi/empty.png">
+    <link rel="preload" as="image" href="assets/jabi/type1.png">
+    <link rel="preload" as="image" href="assets/jabi/type2.png">
+    <link rel="preload" as="image" href="assets/jabi/type3.png">
+    <link rel="preload" as="image" href="assets/jabi/type4.png">
+    <link rel="preload" as="image" href="assets/jabi/type5.png">
+    <link rel="preload" as="image" href="assets/jabi/type6.png">
+    <link rel="preload" as="image" href="assets/jabi/type7.png">
+    <link rel="preload" as="image" href="assets/jabi/type8.png">
+    <link rel="preload" as="image" href="assets/jabi/type9.png">
+    <link rel="preload" as="image" href="assets/jabi/type10.png">
+    <link rel="preload" as="image" href="assets/jabi/type11.png">
+
 </head>
 
 <body>
-    <!-- <script src="common.js"></script> -->
     <container>
-        <hbox>
+        <jabiMainHbox>
             <vbox>
 
                 <div class="jabiImage" id="jabiImageContainer">
@@ -43,15 +57,75 @@
                     <hbox style="margin-top: 20px;">
                         <label for="fontSizeSlider">font size</label>
                         <input type="range" min="1" max="100" value="16" oninput="changeFontSize()" id="fontSizeSlider">
-                        <div id="fontSizeSliderValue">16</div>
+                        <div id="fontSizeSliderValue">16px</div>
                     </hbox>
+                    <hbox style="margin-top: 20px;">
+                        <label for="xPosSlider">x position (px)</label>
+                        <input type="range" min="0" max="100" value="0" oninput="changeXPos()" id="xPosSlider">
+                        <div id="xPosSliderValue">0px</div>
+                    </hbox>
+                    <hbox style="margin-top: 20px;">
+                        <label for="yPosSlider">y position (px)</label>
+                        <input type="range" min="0" max="100" value="0" oninput="changeYPos()" id="yPosSlider">
+                        <div id="yPosSliderValue">0px</div>
+                    </hbox>
+
+                    <button style="margin-top: 20px;" onclick="downloadResult()">download</button>
                 </div>
 
             </vbox>
-        </hbox>
+        </jabiMainHbox>
+    </container>
+    <container id="resultContainer">
+        <h1>result</h1>
     </container>
 </body>
 
+
+
+
+
+<script>
+    const resultContainer = document.getElementById("resultContainer");
+    function downloadResult(){
+        //jabiImage.setAttribute("crossorigin", "anonymous");
+        // html2canvas(jabiImageContainer, {
+        //     allowTaint: false,
+        //     useCORS: true
+        //     }).then(canvas => {
+        //         let imgData = canvas.toDataURL();
+        //         let img = document.createElement('img');
+        //         img.src = imgData;
+        //         resultContainer.appendChild(img);
+        // });
+
+        jabiImage.setAttribute("crossorigin", "anonymous");
+        domtoimage.toPng(jabiImageContainer)
+        .then(function(dataUrl) {
+            let img = new Image();
+            img.src = dataUrl;
+            resultContainer.appendChild(img);
+        })
+        .catch(function (error) {
+            console.error('oops, something went wrong!', error);
+        });
+        jabiImage.removeAttribute("crossorigin");
+
+        //jabiImage.removeAttribute("crossorigin");
+        //jabiImage.setAttribute("crossorigin", "anonymous");
+        // html2canvas(jabiImageContainer, {
+        // useCORS: true,
+        // allowTaint: false}).then(function(canvas) {
+        //     let imgData = canvas.toDataURL();
+        //     let img = document.createElement('img');
+        //     img.src = imgData;
+        //     resultContainer.appendChild(img);
+        // });
+        //jabiImage.removeAttribute("crossorigin");
+    }
+</script>
+
+<!-- quill stuff -->
 <script>
     const quill = new Quill('#editor', {
         modules: {
@@ -73,6 +147,7 @@
     });
 </script>
 
+<!-- textarea drag -->
 <script>
     let currentTextDragElement = null;
     let offsetX = 0;
@@ -90,12 +165,35 @@
         if (currentTextDragElement) {
             currentTextDragElement.style.left = `${e.clientX - offsetX}px`;
             currentTextDragElement.style.top = `${e.clientY - offsetY}px`;
+            xPosSliderElement.value = parseInt(currentTextDragElement.style.left);
+            changeXPos();
+            yPosSliderElement.value = parseInt(currentTextDragElement.style.top);
+            changeYPos();
         }
     });
 
     document.addEventListener('mouseup', function() {
         currentTextDragElement = null;
     });
+</script>
+
+<!-- position sliders -->
+<script>
+    const xPosSliderElement = document.getElementById("xPosSlider");
+    const xPosSliderValueElement = document.getElementById("xPosSliderValue");
+    function changeXPos(){
+        let tarea = document.getElementById(textareaSelectionElement.value);
+        xPosSliderValueElement.innerHTML = xPosSliderElement.value + "px";
+        tarea.style.left = xPosSliderElement.value + "px";
+    }
+
+    const yPosSliderElement = document.getElementById("yPosSlider");
+    const yPosSliderValueElement = document.getElementById("yPosSliderValue");
+    function changeYPos(){
+        let tarea = document.getElementById(textareaSelectionElement.value);
+        yPosSliderValueElement.innerHTML = yPosSliderElement.value + "px";
+        tarea.style.top = yPosSliderElement.value + "px";
+    }
 </script>
 
 <!-- font size slider -->
@@ -113,6 +211,7 @@
 <script>
     const textareaSelectionElement = document.getElementById("textareaSelection");
     const textAreaSpecificOptionsElement = document.getElementById("textAreaSpecificOptions");
+    const jabiImageContainer = document.getElementById("jabiImageContainer");
 
     let textAreas = [];
     
@@ -131,6 +230,14 @@
                 fontSizeSliderElement.value = parseInt(tarea.style.fontSize);
                 changeFontSize();
             }
+            if (!!tarea.style.left){
+                xPosSliderElement.value = parseInt(tarea.style.left);
+                changeXPos();
+            }
+            if (!!tarea.style.top){
+                yPosSliderElement.value = parseInt(tarea.style.top);
+                changeYPos();
+            }
         }
         else {
             textAreaSpecificOptionsElement.style.display = "none";
@@ -140,8 +247,6 @@
     function addTextArea() {
         let textarea = document.createElement('div');
         textarea.className = "jabiImageTextArea";
-        textarea.style.left = Math.floor(2 + Math.random() * 12) + "em";
-        textarea.style.top = Math.floor(1.5 + Math.random() * 8.5) + "em";
 
         // generating a unique id to the text area
         let newId = 1;
@@ -167,6 +272,19 @@
 
         changeSelectedTextArea();
         changeFontSize();
+
+        // random position for textarea
+        textarea.style.left = getRandomInRange(70, jabiImage.getBoundingClientRect().width - textarea.getBoundingClientRect().width - 70/2) + "px";
+        textarea.style.top = getRandomInRange(70, jabiImage.getBoundingClientRect().height - textarea.getBoundingClientRect().height - 70/2) + "px";
+        
+        xPosSliderElement.min = 0;
+        xPosSliderElement.max = jabiImage.getBoundingClientRect().width;
+        yPosSliderElement.min = 0;
+        yPosSliderElement.max = jabiImage.getBoundingClientRect().height;
+
+        changeXPos();
+        changeYPos();
+
     }
     function removeTextArea() {
         let textareaToDelete = document.getElementById(textareaSelectionElement.value);
@@ -235,6 +353,13 @@
     }
 
     switchBackgroundImage(0);
+</script>
+
+<!-- general stuff -->
+<script>
+    function getRandomInRange(minInclusive, maxExclusive){
+        return Math.floor(minInclusive + Math.random() * (maxExclusive - minInclusive));
+    }
 </script>
 
 </html>
