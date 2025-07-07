@@ -89,6 +89,13 @@
     const resultContainer = document.getElementById("resultContainer");
     function downloadResult(){
         jabiImage.setAttribute("crossorigin", "anonymous");
+
+        textAreas.forEach(element => {
+            let el = document.getElementById(element);
+            el.style.left = (parseInt(el.style.left) - jabiImageContainer.offsetLeft) + "px";
+            el.style.top = (parseInt(el.style.top) - jabiImageContainer.offsetTop) + "px";
+        });
+
         domtoimage.toPng(jabiImageContainer, {
             style: {
                 width: jabiImageContainer.offsetWidth + "px",
@@ -104,11 +111,17 @@
             }
             resultContainer.appendChild(img);
             resultContainer.style.display = "flex";
+            textAreas.forEach(element => {
+                let el = document.getElementById(element);
+                el.style.left = (parseInt(el.style.left) + jabiImageContainer.offsetLeft) + "px";
+                el.style.top = (parseInt(el.style.top) + jabiImageContainer.offsetTop) + "px";
+            });
         })
         .catch(function (error) {
             console.error(error);
         });
         jabiImage.removeAttribute("crossorigin");
+
     }
 </script>
 
@@ -264,10 +277,10 @@
         textarea.style.left = getRandomInRange(70, jabiImage.getBoundingClientRect().width - textarea.getBoundingClientRect().width - 70/2) + "px";
         textarea.style.top = getRandomInRange(70, jabiImage.getBoundingClientRect().height - textarea.getBoundingClientRect().height - 70/2) + "px";
         
-        xPosSliderElement.min = 0;
-        xPosSliderElement.max = jabiImage.getBoundingClientRect().width;
-        yPosSliderElement.min = 0;
-        yPosSliderElement.max = jabiImage.getBoundingClientRect().height;
+        xPosSliderElement.min = jabiImage.offsetLeft;
+        xPosSliderElement.max = jabiImage.offsetWidth;
+        yPosSliderElement.min = jabiImage.offsetTop;
+        yPosSliderElement.max = jabiImage.offsetHeight;
 
         changeXPos();
         changeYPos();
