@@ -36,20 +36,22 @@
                 </div>
 
                 <div class="imageSelection">
-                    <button onclick="switchBackgroundImage(-1)">&lt;</button>
+                    <button id="imageSelectionButtonLeft" onclick="switchBackgroundImage(-1)"></button>
                     <div id="imageSelectionImageCounter" class="imageSelectionImageCounter">1/3</div>
-                    <button onclick="switchBackgroundImage(1)">&gt;</button>
+                    <button id="imageSelectionButtonRight" onclick="switchBackgroundImage(1)"></button>
                 </div>
 
             </vbox>
             <vbox>
                 <h1>develop your very own JABI</h1>
 
-                <hbox>
-                    <label for="textareaSelection">current text area: </label>
-                    <select id="textareaSelection" onchange="changeSelectedTextArea()"></select>
-                    <button onclick="addTextArea()">+</button>
-                    <button onclick="removeTextArea()">-</button>
+                <hbox style="align-items: center;">
+                    <label>current text area: </label>
+                    <hbox style="align-items: stretch; width:auto; gap: 0px;">
+                        <select id="textareaSelection" onchange="changeSelectedTextArea()"></select>
+                        <button id="textareaAddButton" onclick="addTextArea()">+</button>
+                        <button id="textareaRemoveButton" onclick="removeTextArea()">-</button>
+                    </hbox>
                 </hbox>
 
                 <div class="textAreaSpecificOptions" id="textAreaSpecificOptions">
@@ -317,6 +319,7 @@
             textAreas.splice(indexInArray, 1);
         }
         textareaToDelete.remove();
+        
         changeSelectedTextArea();
     }
 </script>
